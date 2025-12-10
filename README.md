@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InteliTalk - AI-Powered University Assistant
 
-## Getting Started
+An intelligent education management platform with AI-powered chat assistance for students, comprehensive management tools for teachers and administrators.
 
-First, run the development server:
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- Backend server running on `http://localhost:5001`
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 🔑 Features
 
-To learn more about Next.js, take a look at the following resources:
+### 🎓 For Students
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- AI-powered chat for academic questions
+- View courses and assignments
+- Track deadlines and grades
+- Access learning materials
+- Update profile
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 👨‍🏫 For Teachers
 
-## Deploy on Vercel
+- Manage students
+- Create assignments
+- Grade submissions
+- View student progress
+- Register new students
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 👤 For Administrators
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Complete user management
+- Create student and teacher accounts
+- Upload educational PDFs
+- System analytics
+- User role management
+
+### 🌐 For Guests
+
+- Public Q&A portal
+- No login required
+- AI-powered instant answers
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI + shadcn/ui
+- **Forms**: React Hook Form + Zod
+- **State**: React Hooks + localStorage
+- **Icons**: Lucide React
+- **Notifications**: Sonner
+
+## 📁 Project Structure
+
+```
+client/
+├── app/
+│   ├── (auth)/              # Auth pages (login, change password)
+│   ├── (dashboard)/         # Protected dashboards (admin, teacher, student)
+│   └── guest/              # Public guest portal
+├── components/
+│   ├── ui/                 # shadcn/ui components
+│   └── ...                 # Custom components
+├── hooks/                  # Custom React hooks
+├── lib/                    # Utilities, API client, services
+└── public/                 # Static assets
+```
+
+## 🔐 Authentication
+
+The app uses JWT-based authentication with role-based access control:
+
+- **Admin**: Full system access
+- **Teacher**: Student management
+- **Student**: Courses, assignments, AI chat
+- **Guest**: Public Q&A only
+
+## 📝 Environment Variables
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
+```
+
+## 📚 Documentation
+
+- [SUMMARY.md](./SUMMARY.md) - Complete implementation summary
+- [IMPLEMENTATION.md](./IMPLEMENTATION.md) - Detailed implementation guide
+
+## 🧪 Testing
+
+1. Ensure backend is running
+2. Login with valid credentials
+3. Navigate through role-specific dashboards
+4. Test guest portal without login
+
+## 📞 Support
+
+For detailed information:
+
+- Check IMPLEMENTATION.md for API reference
+- Review SUMMARY.md for feature list
+- Check component source files for usage examples
+
+---
+
+Built with Next.js and ❤️
