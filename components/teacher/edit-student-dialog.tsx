@@ -19,13 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { adminService } from "@/lib/api-services";
+import { teacherService } from "@/lib/api-services";
 import { useToast } from "@/hooks/use-toast-custom";
 import { Loader2 } from "lucide-react";
-import type { User, Department, UserRole } from "@/lib/types";
+import type { User, Department } from "@/lib/types";
 
-interface EditUserDialogProps {
-  user: User | null;
+interface EditStudentDialogProps {
+  student: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -42,12 +42,12 @@ const departments: Department[] = [
   "EEE",
 ];
 
-export function EditUserDialog({
-  user,
+export function EditStudentDialog({
+  student,
   open,
   onOpenChange,
   onSuccess,
-}: EditUserDialogProps) {
+}: EditStudentDialogProps) {
   const [loading, setLoading] = useState(false);
   const { showSuccess, showError } = useToast();
 
@@ -56,46 +56,44 @@ export function EditUserDialog({
     email: "",
     dept: "" as Department,
     studentId: "",
-    teacherId: "",
   });
 
   useEffect(() => {
-    if (user) {
+    if (student) {
       setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        dept: user.dept || ("" as Department),
-        studentId: user.studentId || "",
-        teacherId: user.teacherId || "",
+        name: student.name || "",
+        email: student.email || "",
+        dept: student.dept || ("" as Department),
+        studentId: student.studentId || "",
       });
     }
-  }, [user]);
+  }, [student]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) return;
+    if (!student) return;
 
     try {
       setLoading(true);
       const updateData = {
         name: formData.name,
         email: formData.email,
-        ...(user.role !== "Admin" && formData.dept && { dept: formData.dept }),
-        ...(user.role === "Student" &&
-          formData.studentId && { studentId: formData.studentId }),
-        ...(user.role === "Teacher" &&
-          formData.teacherId && { teacherId: formData.teacherId }),
+        dept: formData.dept,
+        studentId: formData.studentId,
       };
 
-      const response = await adminService.updateUser(user._id, updateData);
+      const response = await teacherService.updateStudent(
+        student._id,
+        updateData
+      );
       if (response.success) {
-        showSuccess("User updated successfully");
+        showSuccess("Student updated successfully");
         onOpenChange(false);
         onSuccess();
       }
     } catch (error: any) {
-      showError(error.message || "Failed to update user");
+      showError(error.message || "Failed to update student");
     } finally {
       setLoading(false);
     }
@@ -105,10 +103,8 @@ export function EditUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription>
-            Update user information. {user?.role && `Role: ${user.role}`}
-          </DialogDescription>
+          <DialogTitle>Edit Student</DialogTitle>
+          <DialogDescription>Update student information</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -137,7 +133,18 @@ export function EditUserDialog({
               />
             </div>
 
-            {user?.role !== "Admin" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-studentId">Student ID</Label>
+                <Input
+                  id="edit-studentId"
+                  value={formData.studentId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, studentId: e.target.value })
+                  }
+                />
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="edit-dept">Department</Label>
                 <Select
@@ -158,33 +165,7 @@ export function EditUserDialog({
                   </SelectContent>
                 </Select>
               </div>
-            )}
-
-            {user?.role === "Student" && (
-              <div className="grid gap-2">
-                <Label htmlFor="edit-student-id">Student ID</Label>
-                <Input
-                  id="edit-student-id"
-                  value={formData.studentId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, studentId: e.target.value })
-                  }
-                />
-              </div>
-            )}
-
-            {user?.role === "Teacher" && (
-              <div className="grid gap-2">
-                <Label htmlFor="edit-teacher-id">Teacher ID</Label>
-                <Input
-                  id="edit-teacher-id"
-                  value={formData.teacherId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, teacherId: e.target.value })
-                  }
-                />
-              </div>
-            )}
+            </div>
           </div>
 
           <DialogFooter>

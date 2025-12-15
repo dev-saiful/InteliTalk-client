@@ -60,3 +60,38 @@ export interface UploadResponse {
   url: string;
   size: number;
 }
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalStudents: number;
+  studentsPerPage: number;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T;
+  pagination: PaginationInfo;
+}
+
+export interface DepartmentStats {
+  department: Department;
+  totalStudents: number;
+  recentStudents: User[];
+  departmentInfo: {
+    _id: Department;
+    totalStudents: number;
+    students: Array<{
+      name: string;
+      studentId: string;
+      email: string;
+    }>;
+  };
+}

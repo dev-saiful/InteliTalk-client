@@ -126,29 +126,29 @@ export default function ChangePasswordPage() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-4 pt-6">
             <div className="flex gap-2 w-full">
               <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.back()}
-                disabled={isLoading}
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => router.back()}
+              disabled={isLoading}
               >
-                Cancel
+              Cancel
               </Button>
               <Button type="submit" className="flex-1" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Changing...
-                  </>
-                ) : (
-                  'Change Password'
-                )}
+              {isLoading ? (
+                <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Changing...
+                </>
+              ) : (
+                'Change Password'
+              )}
               </Button>
             </div>
-          </CardFooter>
+            </CardFooter>
         </form>
       </Card>
     </div>

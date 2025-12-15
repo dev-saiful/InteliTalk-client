@@ -1,77 +1,117 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
-import { studentService } from "@/lib/api-services"
-import { useToast } from "@/hooks/use-toast-custom"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ChatConversation } from "@/components/student/chat-bubble";
+import { ArrowLeft, MessageSquare } from "lucide-react";
+import { studentService } from "@/lib/api-services";
+import { useToast } from "@/hooks/use-toast-custom";
+import type { Chat } from "@/lib/types";
 
 export default function MessagePage({ params }: { params: { id: string } }) {
-  const [chatData, setChatData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const { showError } = useToast()
+  const router = useRouter();
+  const [chatData, setChatData] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { showError } = useToast();
 
   useEffect(() => {
-    fetchChat()
-  }, [params.id])
+    fetchChat();
+  }, [params.id]);
 
   const fetchChat = async () => {
     try {
-      setLoading(true)
-      const response = await studentService.getChats(params.id)
+      setLoading(true);
+      const response = await studentService.getChats(params.id);
       if (response.success) {
-        setChatData(response.chats || response.data)
+        const data = response.data || response.chats || [];
+        const chatArray = Array.isArray(data) ? data : [];
+        setChatData(chatArray);
       }
     } catch (error: any) {
-      showError(error.message || "Failed to fetch chat")
+      showError(error.message || "Failed to fetch chat");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="p-6 md:p-8 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingSpinner size="lg" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="p-6 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Chat History</h1>
+      {/* Header */}
+      <div className="mb-8 flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Chat History</h1>
+          <p className="text-muted-foreground mt-1">
+            View your conversation details
+          </p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Conversation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!chatData || (Array.isArray(chatData) && chatData.length === 0) ? (
-            <p className="text-center text-muted-foreground py-8">No chat history found</p>
-          ) : (
-            <div className="space-y-4">
-              {Array.isArray(chatData) ? (
-                chatData.map((chat: any, index: number) => (
-                  <div key={index} className="border-b pb-4 last:border-b-0">
-                    <div className="mb-2">
-                      <p className="font-semibold text-sm text-muted-foreground">Question:</p>
-                      <p className="mt-1">{chat.question || chat.input}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-muted-foreground">Answer:</p>
-                      <p className="mt-1 text-muted-foreground">{chat.answer || chat.output}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <pre className="text-sm overflow-auto">{JSON.stringify(chatData, null, 2)}</pre>
-              )}
+      {/* Content */}
+      {chatData.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
+              <MessageSquare className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No chat history found
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                This conversation doesn't have any messages yet
+              </p>
+              <Button onClick={() => router.push("/student")}>
+                Start New Chat
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="max-w-4xl mx-auto space-y-4">
+          {chatData.map((chat, index) => (
+            <ChatConversation
+              key={chat._id || index}
+              question={chat.question}
+              answer={chat.answer}
+              timestamp={chat.createdAt}
+            />
+          ))}
+
+          {/* Actions */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-base">Continue Learning</CardTitle>
+            </CardHeader>
+            <CardContent className="flex gap-3">
+              <Button
+                onClick={() => router.push("/student")}
+                className="flex-1"
+              >
+                Ask Another Question
+              </Button>
+              <Button
+                onClick={() => router.push("/student/chats")}
+                variant="outline"
+                className="flex-1"
+              >
+                View All Chats
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
-  )
+  );
 }

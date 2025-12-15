@@ -19,48 +19,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Trash2,
-  Loader2,
-  Edit,
-  UserPlus,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { teacherService } from "@/lib/api-services";
-import type { User, PaginationInfo } from "@/lib/types";
+import { Search, Edit, Trash2, Loader2, UserPlus } from "lucide-react";
+import { adminService } from "@/lib/api-services";
+import type { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast-custom";
-import { CreateStudentDialog } from "@/components/teacher/create-student-dialog";
-import { EditStudentDialog } from "@/components/teacher/edit-student-dialog";
+import { CreateStudentDialog } from "@/components/admin/create-student-dialog";
+import { EditUserDialog } from "@/components/admin/edit-user-dialog";
 
-export default function TeacherStudentsPage() {
+export default function StudentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [students, setStudents] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<User | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchStudents();
-  }, [currentPage]);
+  }, []);
 
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await teacherService.getAllStudents({
-        page: currentPage,
-        limit: 10,
-        sortBy: "name",
-        sortOrder: "asc",
-      });
+      const response = await adminService.getAllUsers();
       if (response.success && response.data) {
-        setStudents(response.data);
-        setPagination(response.pagination);
+        // Filter only students
+        const studentUsers = response.data.filter(
+          (user: User) => user.role === "Student"
+        );
+        setStudents(studentUsers);
       }
     } catch (error: any) {
       showError(error.message || "Failed to fetch students");
@@ -73,7 +61,7 @@ export default function TeacherStudentsPage() {
     if (!confirm("Are you sure you want to delete this student?")) return;
 
     try {
-      const response = await teacherService.deleteStudent(id);
+      const response = await adminService.deleteUser(id);
       if (response.success) {
         showSuccess("Student deleted successfully");
         fetchStudents();
@@ -84,14 +72,16 @@ export default function TeacherStudentsPage() {
   };
 
   const handleEdit = (student: User) => {
-    setSelectedStudent(student);
-    setEditDialogOpen(true);
+    setEditingStudent(student);
+    setShowEditDialog(true);
   };
 
   const filteredStudents = students.filter(
     (student) =>
       student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.dept?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -105,26 +95,44 @@ export default function TeacherStudentsPage() {
   return (
     <div className="p-6 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">My Students</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          Student Management
+        </h1>
         <p className="text-muted-foreground mt-2">
-          Manage and monitor your students' progress
+          Manage all students in the system
         </p>
       </div>
+
+      {showCreateDialog && (
+        <div className="mb-6">
+          <CreateStudentDialog
+            onSuccess={() => {
+              setShowCreateDialog(false);
+              fetchStudents();
+            }}
+          />
+        </div>
+      )}
+
+      <EditUserDialog
+        user={editingStudent}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSuccess={fetchStudents}
+      />
 
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle>Student List</CardTitle>
+              <CardTitle>All Students</CardTitle>
               <CardDescription>
-                {pagination
-                  ? `Showing ${students.length} of ${pagination.totalStudents} students from your department`
-                  : `Total: ${students.length} students`}
+                Total: {students.length} students
               </CardDescription>
             </div>
-            <Button onClick={() => setCreateDialogOpen(true)}>
+            <Button onClick={() => setShowCreateDialog(!showCreateDialog)}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Add Student
+              {showCreateDialog ? "Hide Form" : "Add New Student"}
             </Button>
           </div>
         </CardHeader>
@@ -133,7 +141,7 @@ export default function TeacherStudentsPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder="Search by name, email, student ID, or department..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -147,8 +155,8 @@ export default function TeacherStudentsPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Department</TableHead>
                   <TableHead>Student ID</TableHead>
+                  <TableHead>Department</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -170,14 +178,10 @@ export default function TeacherStudentsPage() {
                       </TableCell>
                       <TableCell>{student.email}</TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {student.dept || "N/A"}
-                        </span>
+                        <Badge variant="outline">{student.studentId}</Badge>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {student.studentId || "N/A"}
-                        </span>
+                        <span className="text-sm">{student.dept}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -185,13 +189,15 @@ export default function TeacherStudentsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(student)}
+                            title="Edit student"
                           >
-                            <Edit className="h-4 w-4 text-primary" />
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(student._id)}
+                            title="Delete student"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -203,56 +209,8 @@ export default function TeacherStudentsPage() {
               </TableBody>
             </Table>
           </div>
-
-          {/* Pagination Controls */}
-          {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={currentPage === 1 || loading}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      Math.min(pagination.totalPages, prev + 1)
-                    )
-                  }
-                  disabled={currentPage === pagination.totalPages || loading}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
-
-      <CreateStudentDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSuccess={fetchStudents}
-      />
-
-      <EditStudentDialog
-        student={selectedStudent}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSuccess={fetchStudents}
-      />
     </div>
   );
 }

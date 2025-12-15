@@ -1,8 +1,39 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, BookOpen, Users, MessageSquare, HelpCircle } from "lucide-react"
+"use client";
+
+import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  BookOpen,
+  Users,
+  MessageSquare,
+  HelpCircle,
+} from "lucide-react";
+import { authService } from "@/lib/auth";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      // Redirect to appropriate dashboard based on role
+      switch (user.role) {
+        case "Admin":
+          router.push("/admin");
+          break;
+        case "Teacher":
+          router.push("/teacher");
+          break;
+        case "Student":
+          router.push("/student");
+          break;
+      }
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-linear-to-br from-primary/5 via-background to-accent/5">
       {/* Navigation */}
@@ -10,7 +41,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">I</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                I
+              </span>
             </div>
             <span className="text-lg font-bold">InteliTalk</span>
           </div>
@@ -28,9 +61,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-32">
         <div className="text-center space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground">InteliTalk: AI Chatbot System for University Collaboration</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground">
+            InteliTalk: AI Chatbot System for University Collaboration
+          </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Empower your university with an AI-powered chatbot for seamless communication, collaboration, and course management among students, teachers, and administrators.
+            Empower your university with an AI-powered chatbot for seamless
+            communication and collaboration among students, teachers, and
+            administrators in the campus environment.
             </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/login">
@@ -48,57 +85,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">Why Choose InteliTalk?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-        {
-          icon: Users,
-          title: "Campus-wide Collaboration",
-          description: "Connect students, faculty, and staff for streamlined communication and teamwork across departments."
-        },
-        {
-          icon: BookOpen,
-          title: "Academic Assistance",
-          description: "Get instant help with course materials, schedules, and assignments through AI-powered chat."
-        },
-        {
-          icon: MessageSquare,
-          title: "24/7 Smart Chatbot",
-          description: "Access reliable answers and support anytime for university-related queries and services."
-        },
-        {
-          icon: HelpCircle,
-          title: "Personalized Guidance",
-          description: "Receive tailored recommendations and reminders for events, deadlines, and campus resources."
-        },
-          ].map((feature) => {
-        const Icon = feature.icon
-        return (
-          <div
-            key={feature.title}
-            className="p-6 rounded-lg border border-border bg-card/50 hover:bg-card transition"
-          >
-            <Icon className="h-8 w-8 text-primary mb-4" />
-            <h3 className="font-semibold mb-2">{feature.title}</h3>
-            <p className="text-sm text-muted-foreground">{feature.description}</p>
-          </div>
-        )
-          })}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Key Features
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Everything you need for effective university communication
+          </p>
         </div>
-      </section>
 
-      {/* CTA */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20">
-        <div className="rounded-lg bg-primary/10 border border-primary/20 p-12 text-center">
-          <h2 className="text-3xl font-bold mb-4">Experience the Future of University Communication</h2>
-          <p className="text-muted-foreground mb-8">Sign in to InteliTalk and empower your campus with intelligent, AI-driven conversations.</p>
-          <Link href="/login">
-        <Button size="lg">Sign In to InteliTalk</Button>
-          </Link>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <BookOpen className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">PDF Upload for Chat</h3>
+            <p className="text-muted-foreground">
+              Upload PDF documents to enable the chatbot to answer questions
+              from your files.
+            </p>
+          </div>
+
+          <div className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Role-Based Access</h3>
+            <p className="text-muted-foreground">
+              Customized experiences for admins, teachers, and students.
+            </p>
+          </div>
+
+          <div className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <MessageSquare className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">AI Chatbot</h3>
+            <p className="text-muted-foreground">
+              Get instant answers to questions about courses and university
+              policies.
+            </p>
+          </div>
+
+          <div className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <HelpCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">24/7 Support</h3>
+            <p className="text-muted-foreground">
+              Always available to help with queries and support needs.
+            </p>
+          </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

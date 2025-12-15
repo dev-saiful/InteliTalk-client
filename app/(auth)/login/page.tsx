@@ -114,24 +114,24 @@ export default function LoginPage() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-4 pt-6">
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
               ) : (
-                'Sign In'
+              'Sign In'
               )}
             </Button>
             
             <div className="text-sm text-center text-muted-foreground">
               <Link href="/guest" className="text-primary hover:underline">
-                Continue as Guest
+              Continue as Guest
               </Link>
             </div>
-          </CardFooter>
+            </CardFooter>
         </form>
       </Card>
     </div>
