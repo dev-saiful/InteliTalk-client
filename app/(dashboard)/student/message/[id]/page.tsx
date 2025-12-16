@@ -10,21 +10,27 @@ import { ArrowLeft, MessageSquare } from "lucide-react";
 import { studentService } from "@/lib/api-services";
 import { useToast } from "@/hooks/use-toast-custom";
 import type { Chat } from "@/lib/types";
+import { use } from "react";
 
-export default function MessagePage({ params }: { params: { id: string } }) {
+export default function MessagePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
+  const resolvedParams = use(params);
   const [chatData, setChatData] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const { showError } = useToast();
 
   useEffect(() => {
     fetchChat();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const fetchChat = async () => {
     try {
       setLoading(true);
-      const response = await studentService.getChats(params.id);
+      const response = await studentService.getChats(resolvedParams.id);
       if (response.success) {
         const data = response.data || response.chats || [];
         const chatArray = Array.isArray(data) ? data : [];
