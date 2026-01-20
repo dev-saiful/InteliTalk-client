@@ -34,26 +34,65 @@ class ApiClient {
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const contentType = response.headers.get('content-type');
     
+    // Handle non-JSON responses (like network errors returning HTML)
     if (!contentType || !contentType.includes('application/json')) {
+      if (!response.ok) {
+        throw new Error(this.getHttpErrorMessage(response.status));
+      }
       throw new Error('Invalid response format from server');
     }
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw {
-        success: false,
-        message: data.message || 'An error occurred',
-        error: data.error,
-        statusCode: response.status,
-      } as ApiError;
+      // Throw an Error object with the server's message for proper error handling
+      const error = new Error(data.message || this.getHttpErrorMessage(response.status));
+      (error as any).statusCode = response.status;
+      (error as any).serverError = data.error;
+      throw error;
     }
 
     return data;
   }
 
+  /**
+   * Get user-friendly error message based on HTTP status code
+   */
+  private getHttpErrorMessage(status: number): string {
+    switch (status) {
+      case 400:
+        return 'Invalid request. Please check your input.';
+      case 401:
+        return 'Invalid email or password.';
+      case 403:
+        return 'Access denied. You do not have permission.';
+      case 404:
+        return 'Resource not found.';
+      case 429:
+        return 'Too many requests. Please try again later.';
+      case 500:
+        return 'Server error. Please try again later.';
+      case 503:
+        return 'Service temporarily unavailable. Please try again later.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
+  /**
+   * Wrapper to safely execute fetch with proper error handling
+   */
+  private async safeFetch(url: string, options: RequestInit): Promise<Response> {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      // Network error (no internet, CORS, server down, etc.)
+      throw new Error('Unable to connect to server. Please check your internet connection.');
+    }
+  }
+
   async get<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await this.safeFetch(`${this.baseURL}${endpoint}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -67,7 +106,7 @@ class ApiClient {
   }
 
   async post<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await this.safeFetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -82,7 +121,7 @@ class ApiClient {
   }
 
   async put<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await this.safeFetch(`${this.baseURL}${endpoint}`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -97,7 +136,7 @@ class ApiClient {
   }
 
   async delete<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await this.safeFetch(`${this.baseURL}${endpoint}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -111,7 +150,7 @@ class ApiClient {
   }
 
   async upload<T = any>(endpoint: string, formData: FormData, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await this.safeFetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       credentials: 'include',
       body: formData,
